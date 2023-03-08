@@ -134,7 +134,7 @@ impl Storage {
 
 impl Persist for Storage {
         // Forms a Set command value and pushes into file buffer
-        fn set(&self, key: String, val: String) {
+        fn set(&self, key: &String, val: &String) {
             let lines = format!("{}\n{}\n{}\n", ActionType::Set.as_str(), key, val);
             match self.safe_file.clone().lock().unwrap().write(lines.as_bytes()){
                 Ok(_) => {},
@@ -145,7 +145,7 @@ impl Persist for Storage {
         }
     
         // Forms a Del command value and pushes into file buffer
-        fn del(&self, key: String) {
+        fn del(&self, key: &String) {
             let lines = format!("{}\n{}\n", ActionType::Del.as_str(), key);
             match self.safe_file.clone().lock().unwrap().write(lines.as_bytes()){
                 Ok(_) => {},
@@ -185,9 +185,9 @@ mod tests {
                 panic!("{}", err)
             }
         };
-        aof.set("some-key-1".to_string(), "some-val".to_string());
-        aof.set("some-key-2".to_string(), "some-val".to_string());
-        aof.del("some-key-2".to_string());
+        aof.set(&"some-key-1".to_string(), &"some-val".to_string());
+        aof.set(&"some-key-2".to_string(), &"some-val".to_string());
+        aof.del(&"some-key-2".to_string());
         tokio::time::sleep(Duration::from_secs(2)).await;
         let contents = fs::read_to_string("somefile")
         .expect("Should have been able to read the file");
