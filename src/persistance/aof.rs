@@ -6,9 +6,10 @@ use tokio::time::{self, Duration};
 use std::ops::Deref;
 use std::fs::OpenOptions;
 use std::io::BufRead;
-use std::error;
+use super::Persist;
+use super::Result;
 
-pub struct Aof {
+pub struct Storage {
     filename: String,
     safe_file: Arc<Mutex<File>>,
     sync_time: u64
@@ -36,13 +37,11 @@ impl ActionType {
     }
 }
 
-type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
-
-impl Aof {
+impl Storage {
     // Returns a new AOF with ARC and collects key value pairs from `filename`.
     // 
     // In addition that the method triggers a subthread period of `sync_time` to flush written values into file.
-    pub fn new(filename: String,sync_time: u64) -> Result<(HashMap<String, String>,Aof)> {
+    pub fn new(filename: String,sync_time: u64) -> Result<(HashMap<String, String>,Storage)> {
         let f = OpenOptions::new().create(true).write(true).append(true).open(&filename)?;
         
         let aof = Self{filename, sync_time, safe_file: Arc::new(Mutex::new(f))};
@@ -131,31 +130,33 @@ impl Aof {
             }
         });
     }
-
-    // Forms a Set command value and pushes into file buffer
-    pub fn set(&self, key: String, val: String) {
-        let lines = format!("{}\n{}\n{}\n", ActionType::Set.as_str(), key, val);
-        match self.safe_file.clone().lock().unwrap().write(lines.as_bytes()){
-            Ok(_) => {},
-            Err(err) => {
-                println!("{}", err);
-            }
-        }
-    }
-
-    // Forms a Del command value and pushes into file buffer
-    pub fn del(&self, key: String) {
-        let lines = format!("{}\n{}\n", ActionType::Del.as_str(), key);
-        match self.safe_file.clone().lock().unwrap().write(lines.as_bytes()){
-            Ok(_) => {},
-            Err(err) => {
-                println!("{}", err);
-            }
-        }    
-    }
 }
 
-impl Deref for Aof {
+impl Persist for Storage {
+        // Forms a Set command value and pushes into file buffer
+        fn set(&self, key: String, val: String) {
+            let lines = format!("{}\n{}\n{}\n", ActionType::Set.as_str(), key, val);
+            match self.safe_file.clone().lock().unwrap().write(lines.as_bytes()){
+                Ok(_) => {},
+                Err(err) => {
+                    println!("{}", err);
+                }
+            }
+        }
+    
+        // Forms a Del command value and pushes into file buffer
+        fn del(&self, key: String) {
+            let lines = format!("{}\n{}\n", ActionType::Del.as_str(), key);
+            match self.safe_file.clone().lock().unwrap().write(lines.as_bytes()){
+                Ok(_) => {},
+                Err(err) => {
+                    println!("{}", err);
+                }
+            }    
+        }
+}
+
+impl Deref for Storage {
     type Target = Arc<Mutex<File>>;
 
     fn deref(&self) -> &Arc<Mutex<File>> {
@@ -176,7 +177,7 @@ mod tests {
 
       #[tokio::test]
         async fn validate_write() {
-        let (_, aof) = match Aof::new("somefile".to_string(), 1){
+        let (_, aof) = match Storage::new("somefile".to_string(), 1){
             Ok((map, aof)) => {
                 (map, aof)
             },
@@ -197,7 +198,7 @@ mod tests {
     #[tokio::test]
         async fn validate_reading_from_aof_file() {
             fs::write("somefile-write", "Set\nsome-key-1\nsome-val\nSet\nsome-key-2\nsome-val\nDel\nsome-key-2\n").expect("unable to write into file");
-            let (map_value, _) = match Aof::new("somefile-write".to_string(), 1){
+            let (map_value, _) = match Storage::new("somefile-write".to_string(), 1){
                 Ok((map, aof)) => {
                     (map, aof)
                 },
