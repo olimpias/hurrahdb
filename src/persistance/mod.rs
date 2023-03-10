@@ -4,22 +4,22 @@ pub mod aof;
 
 #[derive(PartialEq, Debug)]
 pub enum Type {
-    NONE,
-    AOF,
+    None,
+    Aof,
 }
 
 // Abstracts the layer for persistance
 // Currently only AOF implements the trait
 pub trait Persist {
-    fn set(&self, key: &String, val: &String);
-    fn del(&self, key: &String);
+    fn set(&self, key: &str, val: &str);
+    fn del(&self, key: &str);
 }
 
 pub struct Empty;
 
 impl Persist for Empty {
-    fn set(&self, key: &String, val: &String) {}
-    fn del(&self, key: &String) {}
+    fn set(&self, _key: &str, _val: &str) {}
+    fn del(&self, _key: &str) {}
 }
 
 pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;

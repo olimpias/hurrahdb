@@ -94,7 +94,7 @@ impl Storage {
                     if current_operation == ActionType::Del {
                         process_data = true;
                     }
-                    if key.len() == 0 {
+                    if key.is_empty() {
                         panic!("key value can not be empty, corrupted file")
                     }
                 }
@@ -120,7 +120,7 @@ impl Storage {
 
             counter = (counter + 1) % max_counter;
         }
-        return Ok(map);
+        Ok(map)
     }
 
     // Flushes buffered values into file async.
@@ -137,7 +137,6 @@ impl Storage {
                         println!("{}", err);
                     }
                 }
-                return;
             }
         });
     }
@@ -145,7 +144,7 @@ impl Storage {
 
 impl Persist for Storage {
     // Forms a Set command value and pushes into file buffer
-    fn set(&self, key: &String, val: &String) {
+    fn set(&self, key: &str, val: &str) {
         let lines = format!("{}\n{}\n{}\n", ActionType::Set.as_str(), key, val);
         match self
             .safe_file
@@ -162,7 +161,7 @@ impl Persist for Storage {
     }
 
     // Forms a Del command value and pushes into file buffer
-    fn del(&self, key: &String) {
+    fn del(&self, key: &str) {
         let lines = format!("{}\n{}\n", ActionType::Del.as_str(), key);
         match self
             .safe_file
