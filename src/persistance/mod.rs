@@ -4,8 +4,8 @@ pub mod aof;
 
 #[derive(PartialEq, Debug)]
 pub enum Type {
-    NONE,
-    AOF,
+    None,
+    Aof,
 }
 
 // Abstracts the layer for persistance

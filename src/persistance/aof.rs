@@ -94,7 +94,7 @@ impl Storage {
                     if current_operation == ActionType::Del {
                         process_data = true;
                     }
-                    if key.len() == 0 {
+                    if key.is_empty() {
                         panic!("key value can not be empty, corrupted file")
                     }
                 }
@@ -120,7 +120,7 @@ impl Storage {
 
             counter = (counter + 1) % max_counter;
         }
-        return Ok(map);
+        Ok(map)
     }
 
     // Flushes buffered values into file async.
@@ -137,7 +137,6 @@ impl Storage {
                         println!("{}", err);
                     }
                 }
-                return;
             }
         });
     }

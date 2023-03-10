@@ -49,10 +49,10 @@ impl Storage {
     pub fn new(config: Option<Config>) -> persistance::Result<Self> {
         if let Some(c) = config {
             match c.persistance_type {
-                persistance::Type::NONE => {
+                persistance::Type::None => {
                     return Ok(Storage::new_cache_without_persistance());
                 }
-                persistance::Type::AOF => match c.aof_config {
+                persistance::Type::Aof => match c.aof_config {
                     Some(config) => {
                         let (read_map, storage) =
                             persistance::aof::Storage::new(config.file_name, config.sync_time)?;
@@ -61,7 +61,9 @@ impl Storage {
                             storage: Arc::new(storage),
                         });
                     }
-                    None => {}
+                    None => {
+                        return Err(Box::new(ConfigMissing{persistance_type: c.persistance_type}));
+                    }
                 },
             }
         };
@@ -85,16 +87,15 @@ impl Storage {
     }
 
     pub fn get<T: de::DeserializeOwned>(&self, key: String) -> persistance::Result<Option<T>> {
-        let binding = self.clone().cache.try_read().unwrap();
-        let ref_val = binding.get(&key);
-        match ref_val {
-            Some(v) => {
-                let result: T = serde_json::from_str(v)?;
-                return Ok(Some(result));
-            }
-            _ => {}
+        let binding = self.cache.clone();
+        let read_lock = binding.try_read().unwrap();
+        let ref_val = read_lock.get(&key);
+        if let Some(v) = ref_val {
+            let result: T = serde_json::from_str(v)?;
+            return Ok(Some(result));
         }
-        return Ok(None);
+
+        Ok(None)
     }
 }
 
@@ -154,7 +155,7 @@ mod tests {
                 sync_time: 100,
                 file_name: "memory-cache-test-1".to_string(),
             }),
-            persistance_type: persistance::Type::AOF,
+            persistance_type: persistance::Type::Aof,
         })) {
             Ok(storage) => storage,
             Err(err) => {
