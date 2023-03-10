@@ -62,7 +62,9 @@ impl Storage {
                         });
                     }
                     None => {
-                        return Err(Box::new(ConfigMissing{persistance_type: c.persistance_type}));
+                        return Err(Box::new(ConfigMissing {
+                            persistance_type: c.persistance_type,
+                        }));
                     }
                 },
             }
