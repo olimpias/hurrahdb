@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::{error::Error, fmt};
 
-
 #[derive(Debug)]
 pub struct ConfigMissing {
     persistance_type: Type,
