@@ -100,5 +100,3 @@ let result_option: Option<DummyStruct> = match storage.get("some-key".to_string(
     }
 };
 ```
-
-
