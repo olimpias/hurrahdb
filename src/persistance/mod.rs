@@ -2,12 +2,6 @@ use std::error;
 
 pub mod aof;
 
-#[derive(PartialEq, Debug)]
-pub enum Type {
-    None,
-    Aof,
-}
-
 // Abstracts the layer for persistance
 // Currently only AOF implements the trait
 pub trait Persist {

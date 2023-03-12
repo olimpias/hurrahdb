@@ -5,9 +5,16 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::{error::Error, fmt};
 
+
 #[derive(Debug)]
 pub struct ConfigMissing {
-    persistance_type: persistance::Type,
+    persistance_type: Type,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum Type {
+    None,
+    Aof,
 }
 
 impl Error for ConfigMissing {}
@@ -24,7 +31,7 @@ impl fmt::Display for ConfigMissing {
 
 pub struct Config {
     pub aof_config: Option<AofConfig>,
-    pub persistance_type: persistance::Type,
+    pub persistance_type: Type,
 }
 
 pub struct AofConfig {
@@ -49,10 +56,10 @@ impl Storage {
     pub fn new(config: Option<Config>) -> persistance::Result<Self> {
         if let Some(c) = config {
             match c.persistance_type {
-                persistance::Type::None => {
+                Type::None => {
                     return Ok(Storage::new_cache_without_persistance());
                 }
-                persistance::Type::Aof => match c.aof_config {
+                Type::Aof => match c.aof_config {
                     Some(config) => {
                         let (read_map, storage) =
                             persistance::aof::Storage::new(config.file_name, config.sync_time)?;
@@ -157,7 +164,7 @@ mod tests {
                 sync_time: 100,
                 file_name: "memory-cache-test-1".to_string(),
             }),
-            persistance_type: persistance::Type::Aof,
+            persistance_type: Type::Aof,
         })) {
             Ok(storage) => storage,
             Err(err) => {

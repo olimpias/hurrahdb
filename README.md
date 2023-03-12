@@ -56,7 +56,12 @@ let result_option: Option<DummyStruct> = match storage.get("some-key".to_string(
 
 When a storage is created with AOF config, it reads the input file and precreates the hashmap with the data in the file. In addition to that creates a background job to flush data into disk based on `sync_time` value.
 
-**Note**: Since the data flushing async, it does not grantee the persistance. You might loss your data during shotdown/crash states of the app.
+**Note**:
+
+* Since the data flushing async, it does not grantee the persistance. You might loss your data during shotdown/crash states of the app.
+* **Requires** `tokio run time`
+
+**Example usage** [here](examples/example.rs)
 
 ```rust
 
@@ -95,3 +100,5 @@ let result_option: Option<DummyStruct> = match storage.get("some-key".to_string(
     }
 };
 ```
+
+
